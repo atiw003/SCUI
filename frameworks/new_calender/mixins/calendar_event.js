@@ -11,7 +11,10 @@
   Every object obtained through SCUI.Calendar implements this interface. They 
   are not necessarily SC.Record instances (sometimes proxies are used).
   
-  This class is automatically applied to SC.Record.
+  "Instantaneous" events should have first === following. It is an error if 
+  first > following.
+  
+  This mixin is automatically applied to SC.Record.
   
   @author Erich Ocean
   @version 0.1
