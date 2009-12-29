@@ -21,6 +21,9 @@
 SCUI.CalendarController = SC.ArrayController.extend(
 /** @scope SCUI.CalendarController.prototype */ {
   
+  /** @private Walk like a duck. */
+  isCalendarController: YES,
+  
   /** @type SCUI.CalendarLayout */
   layout: null
   

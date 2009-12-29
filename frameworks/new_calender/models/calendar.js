@@ -58,4 +58,7 @@
 SCUI.Calendar = SC.RecordArray.extend(
 /** @scope SCUI.Calendar.prototype */ {
   
+  /** @private Walk like a duck. */
+  isCalendar: YES
+  
 });

@@ -17,11 +17,11 @@
   @version 0.1
   @since 0.1
 */
-SCUI.CalendarEntry = {
+SCUI.CalendarEvent = {
   
   /**
     A property key resolving to an SC.DateTime object specifying the first 
-    second this calendar entry appears in the calendar.
+    second this calendar event appears in the calendar.
     
     @type String
   */
@@ -29,16 +29,16 @@ SCUI.CalendarEntry = {
   
   /**
     A property key resolving to an SC.DateTime object specifying the second 
-    following the time period this calendar entry appears in the calendar.
+    following the time period this calendar event appears in the calendar.
     
     @type String
   */
   followingDateTimeKey: 'followingDateTime',
   
   /**
-    Return NO if the calendar entry does not overlap the specified calendar 
+    Return NO if the calendar event does not overlap the specified calendar 
     in the range [first, following). Otherwise, return either the receiver 
-    or return an array of objects that implement the SCUI.CalendarEntry mixin.
+    or return an array of objects that implement the SCUI.CalendarEvent mixin.
     
     @param calendar SCUI.Calendar the calandar to overlap
     @param first SC.DateTime the first second in the time period to overlap 
@@ -53,4 +53,4 @@ SCUI.CalendarEntry = {
   
 };
 
-SC.mixin(SC.Record.prototype, SCUI.CalendarEntry);
+SC.mixin(SC.Record.prototype, SCUI.CalendarEvent);

@@ -24,6 +24,9 @@
 SCUI.CalendarLayout = SC.Object.extend(
 /** @scope SCUI.CalendarLayout.prototype */ {
   
+  /** @private Walk like a duck. */
+  isCalendarLayout: YES,
+  
   /** @type SC.Calendar */
   calendar: null
   
