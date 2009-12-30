@@ -37,13 +37,13 @@
   
   1. "matching" a record to a calendar is done based on the first, following 
      keys by default, but the *actual* match is done by a special method on 
-     SC.Record called overlapsCalendarInRange(calendar, first, following), 
+     SC.Record called overlapsCalendarInPeriod(calendar, first, following), 
      which either returns NO, or a single object (typically the record 
      itself), or an array of objects that fall within that calendar. That 
      array can be implemented with lightweight objects that proxy to the 
      record for most requests, but know their own first, following range.
   
-  2. By overriding overlapsCalendarInRange() in your SC.Record instance that 
+  2. By overriding overlapsCalendarInPeriod() in your SC.Record instance that 
      can occur multiple times in a single calendar, you can return an array of
      proxies. Note that since a calendar will only attempt to find records 
      within the "visible" data range, a "repeating" record will only need to 

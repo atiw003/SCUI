@@ -50,7 +50,7 @@ SCUI.CalendarEvent = {
       overlap in calendar
     @returns {NO, SCUI.CalendarEntry, or SC.Array}
   */
-  overlapsCalendarInRange: function(calendar, first, following) {
+  overlapsCalendarInPeriod: function(calendar, first, following) {
     throw "FIXME: Not implemented." ;
   }
   
