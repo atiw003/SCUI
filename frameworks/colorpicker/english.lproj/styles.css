@@ -1,0 +1,20 @@
+.wheel {
+  background-image:static_url('images/wheel.png');
+}
+.wheel-black{
+  background-image:static_url('images/wheel-black.png');opacity:0;
+}
+
+.degradee{
+  background-image:static_url('images/brightness-grad.png');
+  background-repeat: repeat-y;
+  height:20x;
+}
+
+.wheel-menu{
+  background-image:static_url('images/wheel-button.png');
+}
+
+.sliders-menu{
+  background-image:static_url('images/slider-button.png');
+}

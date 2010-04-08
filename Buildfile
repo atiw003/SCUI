@@ -26,12 +26,13 @@ end
 # CORE FRAMEWORKS
 config :foundation, :required => [:sproutcore]
 config :calendar, :required => [:foundation]
+config :colorpicker, :required => [:foundation]
 config :dashboard, :required => [:foundation]
 config :drawing, :required => [:foundation]
 config :linkit, :required => [:foundation, :drawing]
 
 # WRAPPER FRAMEWORKS
-config :scui, :required => [:foundation, :calendar, :dashboard, :drawing, :linkit]
+config :scui, :required => [:foundation, :calendar, :colorpicker, :dashboard, :drawing, :linkit]
 
 # SPECIAL THEMES
 # These do not require any of the built-in SproutCore frameworks
