@@ -817,8 +817,8 @@ SCUI.ContentEditableView = SC.WebView.extend(SC.Editable,
     if (!hyperlink) return '';
         
     if (!SC.none(value)) {
-      this.set('isEditing', YES);
       hyperlink.href = value;
+      this.set('isEditing', YES);
       return value;
       
     } else {
@@ -832,8 +832,8 @@ SCUI.ContentEditableView = SC.WebView.extend(SC.Editable,
     if (!hyperlink) return '';
         
     if (value !== undefined) {
-      this.set('isEditing', YES);
       hyperlink.title = value;
+      this.set('isEditing', YES);
       return value;
       
     } else {
@@ -851,8 +851,8 @@ SCUI.ContentEditableView = SC.WebView.extend(SC.Editable,
     if (!image) return '';
     
     if (value !== undefined) {
-      this.set('isEditing', YES);
       image.align = value;
+      this.set('isEditing', YES);
       return value;
       
     } else { 
