@@ -908,30 +908,21 @@ SCUI.ContentEditableView = SC.WebView.extend(SC.Editable,
       currently selected hyperlink, after which I do a bit of cleanup
       and set value to the href property.
     */
-    
-    var radomUrl = '%@%@%@%@%@'.fmt('http://',
+    var randomUrl = '%@%@%@%@%@'.fmt('http://',
                                     this.get('frameName'),
                                     new Date().getTime(), 
                                     parseInt(Math.random()*100000, 0),
                                     '.com/');
     
-    if (doc.execCommand('createlink', false, radomUrl)) {
-      var node = frame.contentWindow.getSelection().focusNode;
-      var hyperlink = node.parentNode;
-
-      if (hyperlink.nodeName.toLowerCase() !== 'a') {
-        var child;
-        for (var x = 0, y = node.childNodes.length; x < y; x++) {
-          child = node.childNodes[x];
-          if (child.nodeName.toLowerCase() === 'a') {
-            if (child.href === radomUrl) {
-              hyperlink = child;
-              break;
-            }
-          }
+    if (doc.execCommand('createlink', false, randomUrl)) {
+      var aTags = doc.getElementsByTagName('a'), hyperlink;
+      
+      for(var i= 0, length = aTags.length; i < length; i +=1){
+        if(aTags[i].href === randomUrl) {
+          hyperlink = aTags[i];
+          break;
         }
       }
-
       hyperlink.href = value;
       
       this.set('selectedHyperlink', hyperlink);
