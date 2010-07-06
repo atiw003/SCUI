@@ -217,6 +217,9 @@ SCUI.ContentEditableView = SC.WebView.extend(SC.Editable,
         html = html.replace(/\n/g, '&#10;');
       }
       
+      html = html.replace(/&lt;span class=eloquaemail&gt;/, "<span class=eloquaemail>");
+      html = html.replace(/&lt;\/span&gt;/g, "<\/span>");
+      
       if (value !== html) {
         this._document.body.innerHTML = value;
         
@@ -1325,6 +1328,9 @@ SCUI.ContentEditableView = SC.WebView.extend(SC.Editable,
     if (this.get('encodeContent')) {
       value = this._encodeValues(value);
     }
+    
+    value = value.replace(/&lt;span class=eloquaemail&gt;/, "<span class=eloquaemail>");
+    value = value.replace(/&lt;\/span&gt;/g, "<\/span>");
     
     this.set('value', value);
     this.set('isEditing', NO);
