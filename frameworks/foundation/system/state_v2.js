@@ -102,14 +102,7 @@ SCUI.State2 = SC.Object.extend({
 
 SCUI.State2.plugin = function(value) {
   var func = function() {
-    if (SC.kindOf(value, SCUI.State2) && value.isClass) {
-      return value;
-    } else if (SC.typeOf(value) === SC.T_STRING) {
-      return SC.objectForPropertyPath(value);
-    } else {
-      console.error('Unrecognized state plugin value type: %@ (%@)'.fmt(value, SC.typeOf(value)));
-      return null;
-    }
+    return SC.objectForPropertyPath(value);
   };
   func.statePlugin = YES;
   return func;
