@@ -84,6 +84,10 @@ SCUI.State2 = SC.Object.extend({
     return this.getPath('parentState.parallelSubstates');
   }.property(),
   
+  hasSubstates: function() {
+    return this.getPath('substates.length') > 0;
+  }.property('substates'),
+  
   enterState: function() { },
   
   exitState: function() { },
