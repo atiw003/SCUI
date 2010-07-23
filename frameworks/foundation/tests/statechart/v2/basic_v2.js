@@ -16,16 +16,18 @@ statechart2 = null;
 module("SCUI.Statechart Mixin: Basic Unit test", {
   setup: function() {
     
-    statechart1 = SC.Object.create(SCUI.Statechart2, {
+    statechart1 = SCUI.Statechart2.create({
+      
+      trace: YES,
       
       rootState: SCUI.State2.design({
         
         lastInvoked: '',
-
+    
         foo: function() {
           this.set('lastInvoked', 'foo');
         },
-
+    
         bar: function() {
           this.set('lastInvoked', 'bar');
         }
@@ -33,22 +35,24 @@ module("SCUI.Statechart Mixin: Basic Unit test", {
       
     });
     
-    statechart2 = SC.Object.create(SCUI.Statechart2, {
+    statechart2 = SCUI.Statechart2.create({
+      
+      trace: YES,
       
       rootState: SCUI.State2.design({
         
         initialSubstate: 'stateA',
-
+    
         stateA: SCUI.State2.design({
           
           initialSubstate: 'stateC',
-
+    
           stateC: SCUI.State2.design(),
           
           stateD: SCUI.State2.design()
-
+    
         }),
-
+    
         stateB: SCUI.State2.design({
           
           initialSubstate: 'stateE',
@@ -62,8 +66,8 @@ module("SCUI.Statechart Mixin: Basic Unit test", {
       
     });
     
-    statechart1.initialize();
-    statechart2.initialize();
+    statechart1.initStatechart();
+    statechart2.initStatechart();
   },
   
   teardown: function() {

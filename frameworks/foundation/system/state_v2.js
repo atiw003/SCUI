@@ -16,12 +16,10 @@ SCUI.State2 = SC.Object.extend({
   
   statechart: null,
   
-  init: function() {
-    this._isInitialized = NO;
-  },
+  stateIsInitialized: NO,
   
-  initialize: function() {
-    if (this._isInitialized) return;
+  initState: function() {
+    if (this.get('stateIsInitialized')) return;
     
     var key = null, 
         value = null,
@@ -42,7 +40,7 @@ SCUI.State2 = SC.Object.extend({
         state = this.createSubstate(value, { name: key });
         substates.push(state);
         this[key] = state;
-        state.initialize();
+        state.initState();
         if (key === initialSubstate) this.set('initialSubstate', state);
       }
     }
@@ -50,7 +48,7 @@ SCUI.State2 = SC.Object.extend({
     this.set('substates', substates);
     this.get('statechart').registerState(this);
     
-    this._isInitialized = YES;
+    this.set('stateIsInitialized', YES);
   },
   
   createSubstate: function(state, attrs) {

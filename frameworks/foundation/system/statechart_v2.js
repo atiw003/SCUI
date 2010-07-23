@@ -1,18 +1,25 @@
 /*globals SCUI */
 
-SCUI.Statechart2 = {
+SCUI.DEFAULT_STATECHART_NAME = "__ROOT_STATE__";
+
+SCUI.StatechartManager = {
+  
+  trace: NO,
   
   rootState: null,
+
+  statechartIsInitialized: NO,
   
   initMixin: function() {
-    this._isInitialized = NO;
     this._registeredStates = [];
   },
   
-  initialize: function() {
-    if (this._isInitialized) return;
+  initStatechart: function() {
+    if (this.get('statechartIsInitialized')) return;
     
-    console.info('BEGIN initialize statechart');
+    var trace = this.get('trace');
+    
+    if (trace) SC.Logger.info('BEGIN initialize statechart');
     
     var rootState = this.get('rootState');
     
@@ -23,42 +30,44 @@ SCUI.Statechart2 = {
     rootState = this.createRootState(rootState);
     this.set('rootState', rootState);
     
-    rootState.initialize();
+    rootState.initState();
     
-    this._isInitialized = YES;
+    this.set('statechartIsInitialized', YES);
     
     this.gotoState(rootState);
     
-    console.info('END initialize statechart');
+    if (trace) SC.Logger.info('END initialize statechart');
   },
   
   createRootState: function(state, attrs) {
     if (!attrs) attrs = {};
     attrs.statechart = this;
-    attrs.name = "__root_state__";
+    attrs.name = SCUI.DEFAULT_STATECHART_NAME;
     state = state.create(attrs);
     return state;
   },
   
   gotoState: function(state) {
-    if (!this._isInitialized) {
-      console.error('can not go to state %@. statechart has not yet been initialized'.fmt(state));
+    if (!this.get('statechartIsInitialized')) {
+      SC.Logger.error('can not go to state %@. statechart has not yet been initialized'.fmt(state));
       return;
     }
     
     var pivotState = null,
         exitStates = [],
-        enterStates = [];
+        enterStates = [],
+        trace = this.get('trace'),
+        paramState = state;
     
     state = this._findMatchingState(state, this._registeredStates);
   
     if (!state) {
-      console.warn('Can not to goto state %@. Not a recognized state in this statechart'.fmt(state));
+      SC.Logger.error('Can not to goto state %@. Not a recognized state in statechart'.fmt(paramState));
       return;
     }
         
-    console.info('BEGIN gotoState: ' + state);
-    console.info('current states before: ' + this.get('currentStates'));
+    if (trace) SC.Logger.info('BEGIN gotoState: ' + state);
+    if (trace) SC.Logger.info('current states before: ' + this.get('currentStates'));
 
     if (this.get('currentStates').length > 0) {
       exitStates = this._createStateChain(this.get('currentStates')[0]);
@@ -66,14 +75,8 @@ SCUI.Statechart2 = {
     
     enterStates = this._createStateChain(state);
     pivotState = this._findPivotState(exitStates, enterStates);
-    
-    if (pivotState) {
-      console.info('pivot state = ' + pivotState);
-      if (pivotState.get('parallelSubstates')) {
-        console.error('cannot goto state %@ since pivot state %@ has parallel substates'.fmt(state, pivotState));
-        return;
-      }
-    }
+
+    if (pivotState && trace) SC.Logger.info('pivot state = ' + pivotState);
     
     this._exitState(exitStates.shift(), exitStates, pivotState);
     
@@ -86,8 +89,8 @@ SCUI.Statechart2 = {
     
     this.set('currentStates', this.get('rootState')._currentChildStates);
     
-    console.info('current states after: ' + this.get('currentStates'));
-    console.info('END gotoState: ' + state);
+    if (trace) SC.Logger.info('current states after: ' + this.get('currentStates'));
+    if (trace) SC.Logger.info('END gotoState: ' + state);
   },
   
   sendEvent: function(event) {
@@ -139,6 +142,8 @@ SCUI.Statechart2 = {
   _exitState: function(state, exitStatePath, stopState) {
     if (!state || !state.get('parentState') || state === stopState) return;
     
+    var trace = this.get('trace');
+    
     if (state.get('parallelSubstates')) {
       var i = 0;
       var states = state._currentChildStates;
@@ -163,7 +168,7 @@ SCUI.Statechart2 = {
       }
     }
       
-    console.log('exiting state: ' + state);
+    if (trace) SC.Logger.info('exiting state: ' + state);
     state.exitState();
     state._currentChildStates = [];
     this._exitState(exitStatePath.shift(), exitStatePath, stopState);
@@ -171,6 +176,8 @@ SCUI.Statechart2 = {
   
   _enterState: function(state, enterStatePath, pivotState) {
     if (!state) return;
+    
+    var trace = this.get('trace');
     
     if (pivotState) {
       if (state !== pivotState) {
@@ -181,7 +188,7 @@ SCUI.Statechart2 = {
     }
     
     else if (!enterStatePath || enterStatePath.length === 0) {
-      console.log('entering state: ' + state);
+      if (trace) SC.Logger.info('entering state: ' + state);
       state.enterState();
       
       var initialSubstate = state.get('initialSubstate');
@@ -202,7 +209,7 @@ SCUI.Statechart2 = {
     }
     
     else if (enterStatePath.length > 0) {
-      console.log('entering state: ' + state);
+      if (trace) SC.Logger.info('entering state: ' + state);
       state.enterState();
       var nextState = enterStatePath.pop();
       this._enterState(nextState, enterStatePath); 
@@ -214,11 +221,12 @@ SCUI.Statechart2 = {
   },
   
   _enterStates: function(states, exclude) {
-    var i = 0;
-    var len = states.length;
+    var i = 0,
+        len = states.length,
+        state = null;
     
     for (; i < len; i += 1) {
-      var state = states[i];
+      state = states[i];
       if (state !== exclude) this._enterState(state);
     }
   },
@@ -245,3 +253,5 @@ SCUI.Statechart2 = {
   }
   
 };
+
+SCUI.Statechart2 = SC.Object.extend(SCUI.StatechartManager);

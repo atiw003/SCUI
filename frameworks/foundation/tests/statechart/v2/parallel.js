@@ -15,7 +15,9 @@ statechart = null;
 module("SCUI.Statechart Mixin: Basic Unit test", {
   setup: function() {
     
-    statechart = SC.Object.create(SCUI.Statechart2, {
+    statechart = SCUI.Statechart2.create({
+      
+      trace: YES,
       
       rootState: SCUI.State2.design({
         
@@ -44,7 +46,7 @@ module("SCUI.Statechart Mixin: Basic Unit test", {
       
     });
     
-    statechart.initialize();
+    statechart.initStatechart();
   },
   
   teardown: function() {
