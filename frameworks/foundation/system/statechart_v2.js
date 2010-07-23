@@ -4,12 +4,9 @@ SCUI.Statechart2 = {
   
   rootState: null,
   
-  currentStates: null,
-  
   initMixin: function() {
     this._isInitialized = NO;
     this._registeredStates = [];
-    this.currentStates = [];
   },
   
   initialize: function() {
@@ -28,9 +25,9 @@ SCUI.Statechart2 = {
     
     rootState.initialize();
     
-    this.gotoState(rootState);
-    
     this._isInitialized = YES;
+    
+    this.gotoState(rootState);
     
     console.info('END initialize statechart');
   },
@@ -44,6 +41,11 @@ SCUI.Statechart2 = {
   },
   
   gotoState: function(state) {
+    if (!this._isInitialized) {
+      console.error('can not go to state %@. statechart has not yet been initialized'.fmt(state));
+      return;
+    }
+    
     var pivotState = null,
         exitStates = [],
         enterStates = [];
@@ -56,10 +58,10 @@ SCUI.Statechart2 = {
     }
         
     console.info('BEGIN gotoState: ' + state);
-    console.info('current states before: ' + this.currentStates);
-    
+    console.info('current states before: ' + this.get('currentStates'));
+
     if (this.get('currentStates').length > 0) {
-      exitStates = this._createStateChain(this.currentStates[0]);
+      exitStates = this._createStateChain(this.get('currentStates')[0]);
     }
     
     enterStates = this._createStateChain(state);
@@ -74,11 +76,17 @@ SCUI.Statechart2 = {
     }
     
     this._exitState(exitStates.shift(), exitStates, pivotState);
-    this._enterState(enterStates.pop(), enterStates, pivotState);
+    
+    if (pivotState !== state) {
+      this._enterState(enterStates.pop(), enterStates, pivotState);
+    } else {
+      this._exitState(pivotState, []);
+      this._enterState(pivotState);
+    }
     
     this.set('currentStates', this.get('rootState')._currentChildStates);
     
-    console.info('current states after: ' + this.currentStates);
+    console.info('current states after: ' + this.get('currentStates'));
     console.info('END gotoState: ' + state);
   },
   
@@ -86,8 +94,12 @@ SCUI.Statechart2 = {
     
   },
   
-  currentState: function(value) {
-    return !SC.none(this._findMatchingState(value, this.get('currentStates')));
+  currentStates: function() {
+    return this.get('rootState')._currentChildStates;
+  }.property(),
+  
+  currentState: function(state) {
+    return this.get('rootState').currentState(state);
   },
   
   registerState: function(state) {

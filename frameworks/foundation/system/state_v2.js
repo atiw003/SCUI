@@ -14,7 +14,6 @@ SCUI.State2 = SC.Object.extend({
   
   substates: null,
   
-  /** @private */
   statechart: null,
   
   init: function() {
@@ -75,19 +74,16 @@ SCUI.State2 = SC.Object.extend({
   }.property(),
   
   currentState: function(state) {
-    return this.get('statechart').currentState(state);
+    state = this.get('statechart').getState(state);
+    return this._currentChildStates.indexOf(state) >= 0;
   }, 
-  
-  parallelCurrentStateFor: function(state) {
-    
-  },
   
   isRootState: function() {
     return this.getPath('statechart.rootState') === this;
   }.property(),
   
   isCurrentState: function() {
-    return this.get('statechart').currentState(this);
+    return this.currentState(this);
   }.property(),
   
   enterState: function() { },
