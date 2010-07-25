@@ -25,7 +25,7 @@ module("SCUI.Statechart Mixin: Basic Unit test", {
 
         stateA: SCUI.State2.design({
           
-          parallelSubstates: YES,
+          substatesAreParallel: YES,
 
           stateC: SCUI.State2.design(),
           
@@ -35,7 +35,7 @@ module("SCUI.Statechart Mixin: Basic Unit test", {
 
         stateB: SCUI.State2.design({
           
-          parallelSubstates: YES,
+          substatesAreParallel: YES,
           
           stateE: SCUI.State2.design(),
           

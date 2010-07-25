@@ -6,12 +6,19 @@ SCUI.StatechartManager = {
   
   trace: NO,
   
+  monitorIsActive: NO,
+  
   rootState: null,
+  
+  monitor: null,
 
   statechartIsInitialized: NO,
   
   initMixin: function() {
     this._registeredStates = [];
+    if (this.get('monitorIsActive')) {
+      this.set('monitor', SCUI.StatechartMonitor.create());
+    }
   },
   
   initStatechart: function() {
@@ -187,6 +194,7 @@ SCUI.StatechartManager = {
       
     if (trace) SC.Logger.info('exiting state: ' + state);
     state.exitState();
+    if (this.get('monitorIsActive')) this.get('monitor').pushExitedState(state);
     state.set('currentSubstates', []);
     this._traverseStatesToExit(exitStatePath.shift(), exitStatePath, stopState);
   },
@@ -255,6 +263,7 @@ SCUI.StatechartManager = {
     var parentState = state.get('parentState');
     if (!state.get('isParallelState') && parentState) parentState.set('historyState', state);
     state.enterState();
+    if (this.get('monitorIsActive')) this.get('monitor').pushEnteredState(state);
   },
   
   _createRootState: function(state, attrs) {
@@ -284,7 +293,13 @@ SCUI.StatechartManager = {
     }
     
     return null;
-  }
+  },
+  
+  _monitorIsActiveDidChange: function() {
+    if (this.get('monitorIsActive') && SC.none(this.get('monitor'))) {
+      this.set('monitor', SCUI.StatechartMonitor.create());
+    }
+  }.observes('monitorDidChange')
   
 };
 

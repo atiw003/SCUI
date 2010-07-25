@@ -8,7 +8,6 @@
 */
 
 var statechart = null;
-var monitor = null;
 
 // ..........................................................
 // CONTENT CHANGING
@@ -17,56 +16,46 @@ var monitor = null;
 module("SCUI.Statechart: No Parallel States Statechart Tests", {
   setup: function() {
 
-    monitor = SCUI.StatechartMonitor.create();
-
-    var transitionMixin = {
-      enterState: function() {
-        monitor.pushEnteredState(this);
-      },
-      
-      exitState: function() {
-        monitor.pushExitedState(this);
-      }
-    };
-
     statechart = SCUI.Statechart2.create({
       
-      rootState: SCUI.State2.design(transitionMixin, {
+      monitorIsActive: YES,
+      
+      rootState: SCUI.State2.design({
         
         initialSubstate: 'a',
         
-        a: SCUI.State2.design(transitionMixin, {
+        a: SCUI.State2.design({
         
           initialSubstate: 'c',
           
-          c: SCUI.State2.design(transitionMixin, {
+          c: SCUI.State2.design({
             initialSubstate: 'g',
-            g: SCUI.State2.design(transitionMixin),
-            h: SCUI.State2.design(transitionMixin)
+            g: SCUI.State2.design(),
+            h: SCUI.State2.design()
           }),
           
-          d: SCUI.State2.design(transitionMixin, {
+          d: SCUI.State2.design({
             initialSubstate: 'i',
-            i: SCUI.State2.design(transitionMixin),
-            j: SCUI.State2.design(transitionMixin)
+            i: SCUI.State2.design(),
+            j: SCUI.State2.design()
           })
           
         }),
         
-        b: SCUI.State2.design(transitionMixin, {
+        b: SCUI.State2.design({
           
           initialSubstate: 'e',
           
-          e: SCUI.State2.design(transitionMixin, {
+          e: SCUI.State2.design({
             initialSubstate: 'k',
-            k: SCUI.State2.design(transitionMixin),
-            l: SCUI.State2.design(transitionMixin)
+            k: SCUI.State2.design(),
+            l: SCUI.State2.design()
           }),
           
-          f: SCUI.State2.design(transitionMixin, {
+          f: SCUI.State2.design({
             initialSubstate: 'm',
-            m: SCUI.State2.design(transitionMixin),
-            n: SCUI.State2.design(transitionMixin)
+            m: SCUI.State2.design(),
+            n: SCUI.State2.design()
           })
           
         })
@@ -80,7 +69,6 @@ module("SCUI.Statechart: No Parallel States Statechart Tests", {
   
   teardown: function() {
     statechart.destroy();
-    monitor.destroy();
   }
 });
 
@@ -115,6 +103,7 @@ test("check statechart state objects", function() {
 });
 
 test("check statechart initialization", function() {
+  var monitor = statechart.get('monitor');
   var root = statechart.get('rootState');
   equals(monitor.get('length'), 4, 'initial state sequence should be of length 4');
   equals(monitor.matchSequence().begin().entered(root, 'a', 'c', 'g').end(), true, 'initial sequence should be entered[ROOT, a, c, g]');
@@ -124,6 +113,7 @@ test("check statechart initialization", function() {
 });
 
 test("go to state h", function() {
+  var monitor = statechart.get('monitor');
   monitor.reset();
   statechart.gotoState('h');
   
@@ -135,6 +125,7 @@ test("go to state h", function() {
 });
 
 test("go to states: h, d", function() {
+  var monitor = statechart.get('monitor');
   statechart.gotoState('h');
   
   monitor.reset();
@@ -149,6 +140,7 @@ test("go to states: h, d", function() {
 });
 
 test("go to states: h, d, h", function() {
+  var monitor = statechart.get('monitor');
   statechart.gotoState('h');
   statechart.gotoState('d');
   
@@ -162,6 +154,7 @@ test("go to states: h, d, h", function() {
 });
 
 test("go to state b", function() {
+  var monitor = statechart.get('monitor');
   monitor.reset();
   statechart.gotoState('b');
   
@@ -174,6 +167,7 @@ test("go to state b", function() {
 });
 
 test("go to state f", function() {
+  var monitor = statechart.get('monitor');
   monitor.reset();
   statechart.gotoState('f');
   
@@ -184,6 +178,7 @@ test("go to state f", function() {
 });
 
 test("go to state m", function() {
+  var monitor = statechart.get('monitor');
   monitor.reset();
   statechart.gotoState('n');
   
@@ -194,6 +189,7 @@ test("go to state m", function() {
 });
 
 test("re-enter state g", function() {
+  var monitor = statechart.get('monitor');
   monitor.reset();
   statechart.gotoState('g');
   
@@ -215,6 +211,7 @@ test("re-enter state g", function() {
 }); 
 
 test("go to g state's ancestor state a", function() {
+  var monitor = statechart.get('monitor');
   monitor.reset();
   statechart.gotoState('a');
   
@@ -225,6 +222,7 @@ test("go to g state's ancestor state a", function() {
 });
 
 test("go to state b and then go to root state", function() {
+  var monitor = statechart.get('monitor');
   statechart.gotoState('b');
   equals(statechart.get('currentStateCount'), 1, 'current state count should be 1');
   equals(statechart.stateIsCurrentState('k'), true, 'current state should be k');
@@ -241,6 +239,7 @@ test("go to state b and then go to root state", function() {
 });
 
 test("from state g, go to state m calling state g\'s gotoState", function() {
+  var monitor = statechart.get('monitor');
   var stateG = statechart.getState('g'),
       stateM = statechart.getState('m');
   
@@ -259,4 +258,3 @@ test("from state g, go to state m calling state g\'s gotoState", function() {
   equals(stateG.get('isCurrentState'), false, 'state g should not be current state');
   equals(stateM.get('isCurrentState'), true, 'state m should be current state');
 });
-
