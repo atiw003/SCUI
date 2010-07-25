@@ -1,6 +1,6 @@
 /*globals SCUI */
 
-SCUI.DEFAULT_STATECHART_NAME = "__ROOT_STATE__";
+SCUI.ROOT_STATE_NAME = "__ROOT_STATE__";
 
 SCUI.StatechartManager = {
   
@@ -17,11 +17,10 @@ SCUI.StatechartManager = {
   initStatechart: function() {
     if (this.get('statechartIsInitialized')) return;
     
-    var trace = this.get('trace');
+    var trace = this.get('trace'),
+        rootState = this.get('rootState');
     
     if (trace) SC.Logger.info('BEGIN initialize statechart');
-    
-    var rootState = this.get('rootState');
     
     if (!(SC.kindOf(rootState, SCUI.State2) && rootState.isClass)) {
       throw "Unable to initialize statechart. Root state must be a state class";
@@ -29,22 +28,23 @@ SCUI.StatechartManager = {
     
     rootState = this._createRootState(rootState);
     this.set('rootState', rootState);
-    
     rootState.initState();
-    
     this.set('statechartIsInitialized', YES);
-    
     this.gotoState(rootState);
     
     if (trace) SC.Logger.info('END initialize statechart');
   },
   
   currentStates: function() {
-    return this.get('rootState')._currentChildStates;
+    return this.getPath('rootState.currentSubstates');
   }.property(),
   
-  currentState: function(state) {
-    return this.get('rootState').currentState(state);
+  currentStateCount: function() {
+    return this.getPath('currentStates.length');
+  }.property(),
+  
+  stateIsCurrentState: function(state) {
+    return this.get('rootState').stateIsCurrentSubstate(state);
   },
   
   doesContainState: function(value) {
@@ -86,16 +86,16 @@ SCUI.StatechartManager = {
 
     if (pivotState && trace) SC.Logger.info('pivot state = ' + pivotState);
     
-    this._walkExitStates(exitStates.shift(), exitStates, pivotState);
+    this._traverseStatesToExit(exitStates.shift(), exitStates, pivotState);
     
     if (pivotState !== state) {
-      this._walkEnterStates(enterStates.pop(), enterStates, pivotState, useHistory);
+      this._traverseStatesToEnter(enterStates.pop(), enterStates, pivotState, useHistory);
     } else {
-      this._walkExitStates(pivotState, []);
-      this._walkEnterStates(pivotState, null, null, useHistory);
+      this._traverseStatesToExit(pivotState, []);
+      this._traverseStatesToEnter(pivotState, null, null, useHistory);
     }
     
-    this.set('currentStates', this.get('rootState')._currentChildStates);
+    this.set('currentStates', this.get('rootState').currentSubstates);
     
     if (trace) SC.Logger.info('current states after: ' + this.get('currentStates'));
     if (trace) SC.Logger.info('END gotoState: ' + state);
@@ -133,7 +133,6 @@ SCUI.StatechartManager = {
 
   registerState: function(state) {
     this._registeredStates.push(state);
-    state._currentChildStates = [];
   },
   
   _createStateChain: function(state) {
@@ -157,30 +156,30 @@ SCUI.StatechartManager = {
     return pivot;
   },
   
-  _walkExitStates: function(state, exitStatePath, stopState) {
-    if (!state || !state.get('parentState') || state === stopState) return;
+  _traverseStatesToExit: function(state, exitStatePath, stopState) {
+    if (!state || state === stopState) return;
     
     var trace = this.get('trace');
     
-    if (state.get('parallelSubstates')) {
+    if (state.get('substatesAreParallel')) {
       var i = 0;
-      var states = state._currentChildStates;
+      var states = state.get('currentSubstates');
       var len = states.length;
       
       for (; i < len; i += 1) {
         var chain = this._createStateChain(states[i]);
-        this._walkExitStates(chain.shift(), chain, state);
+        this._traverseStatesToExit(chain.shift(), chain, state);
       }
     }
     
-    if (state._currentChildStates.indexOf(state) >= 0) {  
+    if (state.get('currentSubstates').indexOf(state) >= 0) {  
       var parentState = state.get('parentState');
       while (parentState) {
-        parentState._currentChildStates.removeObject(state);
-        var index = parentState._currentChildStates.indexOf(state);
+        parentState.get('currentSubstates').removeObject(state);
+        var index = parentState.get('currentSubstates').indexOf(state);
         if (index >= 0) {
-          parentState._currentChildStates[index] = null;
-          parentState._currentChildStates = parentState._currentChildStates.compact();
+          parentState.get('currentSubstates')[index] = null;
+          parentState.set('currentSubstates', parentState.get('currentSubstates').compact());
         }
         parentState = parentState.get('parentState');
       }
@@ -188,20 +187,20 @@ SCUI.StatechartManager = {
       
     if (trace) SC.Logger.info('exiting state: ' + state);
     state.exitState();
-    state._currentChildStates = [];
-    this._walkExitStates(exitStatePath.shift(), exitStatePath, stopState);
+    state.set('currentSubstates', []);
+    this._traverseStatesToExit(exitStatePath.shift(), exitStatePath, stopState);
   },
   
-  _walkEnterStates: function(state, enterStatePath, pivotState, useHistory) {
+  _traverseStatesToEnter: function(state, enterStatePath, pivotState, useHistory) {
     if (!state) return;
     
     var trace = this.get('trace');
     
     if (pivotState) {
       if (state !== pivotState) {
-        this._walkEnterStates(enterStatePath.pop(), enterStatePath, pivotState, useHistory);
+        this._traverseStatesToEnter(enterStatePath.pop(), enterStatePath, pivotState, useHistory);
       } else {
-        this._walkEnterStates(enterStatePath.pop(), enterStatePath, null, useHistory);
+        this._traverseStatesToEnter(enterStatePath.pop(), enterStatePath, null, useHistory);
       }
     }
     
@@ -211,19 +210,19 @@ SCUI.StatechartManager = {
       var initialSubstate = state.get('initialSubstate'),
           historyState = state.get('historyState');
       
-      if (state.get('parallelSubstates')) {
-        this._walkParallelEnterStates(state.get('substates'), null, useHistory);
+      if (state.get('substatesAreParallel')) {
+        this._traverseParallelStatesToEnter(state.get('substates'), null, useHistory);
       }
       else if (state.get('hasSubstates') && historyState && useHistory) {
-        this._walkEnterStates(historyState, null, null, useHistory);
+        this._traverseStatesToEnter(historyState, null, null, useHistory);
       }
       else if (initialSubstate) {
-        this._walkEnterStates(initialSubstate, null, null, useHistory);  
+        this._traverseStatesToEnter(initialSubstate, null, null, useHistory);  
       } 
       else {
         var parentState = state;
         while (parentState) {
-          parentState._currentChildStates.push(state);
+          parentState.get('currentSubstates').push(state);
           parentState = parentState.get('parentState');
         }
       }
@@ -232,22 +231,22 @@ SCUI.StatechartManager = {
     else if (enterStatePath.length > 0) {
       this._enterState(state);
       var nextState = enterStatePath.pop();
-      this._walkEnterStates(nextState, enterStatePath, null, useHistory); 
+      this._traverseStatesToEnter(nextState, enterStatePath, null, useHistory); 
       
-      if (state.get('parallelSubstates')) {
-        this._walkParallelEnterStates(state.get('substates'), nextState, useHistory);
+      if (state.get('substatesAreParallel')) {
+        this._traverseParallelStatesToEnter(state.get('substates'), nextState, useHistory);
       }
     }
   },
   
-  _walkParallelEnterStates: function(states, exclude, useHistory) {
+  _traverseParallelStatesToEnter: function(states, exclude, useHistory) {
     var i = 0,
         len = states.length,
         state = null;
     
     for (; i < len; i += 1) {
       state = states[i];
-      if (state !== exclude) this._walkEnterStates(state, null, null, useHistory);
+      if (state !== exclude) this._traverseStatesToEnter(state, null, null, useHistory);
     }
   },
   
@@ -261,7 +260,7 @@ SCUI.StatechartManager = {
   _createRootState: function(state, attrs) {
     if (!attrs) attrs = {};
     attrs.statechart = this;
-    attrs.name = SCUI.DEFAULT_STATECHART_NAME;
+    attrs.name = SCUI.ROOT_STATE_NAME;
     state = state.create(attrs);
     return state;
   },

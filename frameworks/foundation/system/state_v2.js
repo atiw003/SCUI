@@ -10,13 +10,15 @@ SCUI.State2 = SC.Object.extend({
   
   initialSubstate: null,
   
-  parallelSubstates: NO,
+  substatesAreParallel: NO,
   
   substates: null,
   
   statechart: null,
   
   stateIsInitialized: NO,
+  
+  currentSubstates: null,
   
   initState: function() {
     if (this.get('stateIsInitialized')) return;
@@ -37,7 +39,7 @@ SCUI.State2 = SC.Object.extend({
       }
       
       if (SC.kindOf(value, SCUI.State2) && value.isClass && this[key] !== this.constructor) {
-        state = this.createSubstate(value, { name: key });
+        state = this._createSubstate(value, { name: key });
         substates.push(state);
         this[key] = state;
         state.initState();
@@ -46,12 +48,13 @@ SCUI.State2 = SC.Object.extend({
     }
     
     this.set('substates', substates);
+    this.set('currentSubstates', []);
     this.get('statechart').registerState(this);
     
     this.set('stateIsInitialized', YES);
   },
   
-  createSubstate: function(state, attrs) {
+  _createSubstate: function(state, attrs) {
     if (!attrs) attrs = {};
     attrs.parentState = this;
     attrs.statechart = this.get('statechart');
@@ -67,9 +70,9 @@ SCUI.State2 = SC.Object.extend({
     this.get('statechart').gotoHistoryState(this, recursive);
   },
   
-  currentState: function(state) {
+  stateIsCurrentSubstate: function(state) {
     state = this.get('statechart').getState(state);
-    return this._currentChildStates.indexOf(state) >= 0;
+    return this.get('currentSubstates').indexOf(state) >= 0;
   }, 
   
   isRootState: function() {
@@ -77,16 +80,25 @@ SCUI.State2 = SC.Object.extend({
   }.property(),
   
   isCurrentState: function() {
-    return this.currentState(this);
+    return this.stateIsCurrentSubstate(this);
   }.property(),
   
   isParallelState: function() {
-    return this.getPath('parentState.parallelSubstates');
+    return this.getPath('parentState.substatesAreParallel');
   }.property(),
   
   hasSubstates: function() {
     return this.getPath('substates.length') > 0;
   }.property('substates'),
+  
+  reenter: function() {
+    var statechart = this.get('statechart');
+    if (statechart.stateIsCurrentState(this)) {
+      statechart.gotoState(this);
+    } else {
+       SC.Logger.error('Can not re-enter state %@ since it is not a current state in the statechart'.fmt(this));
+    }
+  },
   
   enterState: function() { },
   
