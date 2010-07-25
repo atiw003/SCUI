@@ -63,11 +63,11 @@ SCUI.State2 = SC.Object.extend({
   },
   
   gotoState: function(state) {
-    this.get('statechart').gotoState(state);
+    this.get('statechart').gotoState(state, this.get('isCurrentState') ? this : null);
   },
   
-  gotoHistoryState: function(recursive) {
-    this.get('statechart').gotoHistoryState(this, recursive);
+  gotoHistoryState: function(state, recursive) {
+    this.get('statechart').gotoHistoryState(state, this.get('isCurrentState') ? this : null, recursive);
   },
   
   stateIsCurrentSubstate: function(state) {

@@ -62,7 +62,8 @@ SCUI.StatechartManager = {
     return this._findMatchingState(value, this._registeredStates);
   },
   
-  gotoState: function(state, useHistory) {
+  gotoState: function(state, fromCurrentState, useHistory) {
+    
     if (!this.get('statechartIsInitialized')) {
       SC.Logger.error('can not go to state %@. statechart has not yet been initialized'.fmt(state));
       return;
@@ -72,26 +73,47 @@ SCUI.StatechartManager = {
         exitStates = [],
         enterStates = [],
         trace = this.get('trace'),
-        paramState = state;
+        paramState = state,
+        paramFromCurrentState = fromCurrentState;
     
     state = this._findMatchingState(state, this._registeredStates);
+    
+    if (!SC.none(fromCurrentState)) {
+      fromCurrentState =  this._findMatchingState(fromCurrentState, this.get('currentStates'));
+      if (SC.none(fromCurrentState)) {
+        SC.Logger.error('Can not to goto state %@. %@ is not a recognized current state in statechart'.fmt(paramState, paramFromCurrentState));
+        return;
+      }
+    } 
+    else if (this.getPath('currentStates.length') > 0) {
+      fromCurrentState = this.get('currentStates')[0];
+    }
   
-    if (!state) {
+    if (SC.none(state)) {
       SC.Logger.error('Can not to goto state %@. Not a recognized state in statechart'.fmt(paramState));
       return;
     }
         
-    if (trace) SC.Logger.info('BEGIN gotoState: ' + state);
-    if (trace) SC.Logger.info('current states before: ' + this.get('currentStates'));
+    if (trace) {
+      SC.Logger.info('BEGIN gotoState: %@'.fmt(state));
+      SC.Logger.info('starting from current state: %@'.fmt(fromCurrentState));
+      SC.Logger.info('current states before: %@'.fmt(this.get('currentStates')));
+    }
 
-    if (this.getPath('currentStates.length') > 0) {
-      exitStates = this._createStateChain(this.get('currentStates')[0]);
+    if (!SC.none(fromCurrentState)) {
+      exitStates = this._createStateChain(fromCurrentState);
     }
     
     enterStates = this._createStateChain(state);
     pivotState = this._findPivotState(exitStates, enterStates);
 
-    if (pivotState && trace) SC.Logger.info('pivot state = ' + pivotState);
+    if (pivotState) {
+      if (trace) SC.Logger.info('pivot state = ' + pivotState);
+      if (pivotState.get('substatesAreParallel')) {
+        SC.Logger.error('Can not go to state %@. Pivot state %@ has parallel substates.'.fmt(state, pivotState));
+        return;
+      }
+    }
     
     this._traverseStatesToExit(exitStates.shift(), exitStates, pivotState);
     
@@ -104,11 +126,13 @@ SCUI.StatechartManager = {
     
     this.set('currentStates', this.get('rootState').currentSubstates);
     
-    if (trace) SC.Logger.info('current states after: ' + this.get('currentStates'));
-    if (trace) SC.Logger.info('END gotoState: ' + state);
+    if (trace) {
+      SC.Logger.info('current states after: %@'.fmt(this.get('currentStates')));
+      SC.Logger.info('END gotoState: %@'.fmt(state));
+    }
   },
   
-  gotoHistoryState: function(state, recursive) {
+  gotoHistoryState: function(state, fromCurrentState, recursive) {
     if (!this.get('statechartIsInitialized')) {
       SC.Logger.error("can not go to state %@'s history state . statechart has not yet been initialized".fmt(state));
       return;
@@ -125,12 +149,12 @@ SCUI.StatechartManager = {
     
     if (!recursive) { 
       if (historyState) {
-        this.gotoState(historyState);
+        this.gotoState(historyState, fromCurrentState);
       } else {
-        this.gotoState(state);
+        this.gotoState(state, fromCurrentState);
       }
     } else {
-      this.gotoState(state, YES);
+      this.gotoState(state, fromCurrentState, YES);
     }
   },
   
@@ -261,7 +285,7 @@ SCUI.StatechartManager = {
   _enterState: function(state) {
     if (this.get('trace')) SC.Logger.info('entering state: ' + state);
     var parentState = state.get('parentState');
-    if (!state.get('isParallelState') && parentState) parentState.set('historyState', state);
+    if (parentState && !state.get('isParallelState')) parentState.set('historyState', state);
     state.enterState();
     if (this.get('monitorIsActive')) this.get('monitor').pushEnteredState(state);
   },

@@ -13,7 +13,7 @@ var statechart = null;
 // CONTENT CHANGING
 // 
 
-module("SCUI.Statechart: No Parallel States Statechart Tests", {
+module("SCUI.Statechart: No Parallel States - Goto State Tests", {
   setup: function() {
 
     statechart = SCUI.Statechart2.create({
