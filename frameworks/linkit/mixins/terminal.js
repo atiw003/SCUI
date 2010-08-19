@@ -202,7 +202,8 @@ LinkIt.Terminal = {
   
   */
   dragSourceOperationMaskFor: function(drag, dropTarget) {
-    return this._nodeAllowsLink(dropTarget) ? SC.DRAG_LINK : SC.DRAG_NONE;
+    var terminal = dropTarget.get('isNodeView') ? dropTarget.get('proxiedTerminalView') : dropTarget;
+    return this._nodeAllowsLink(terminal) ? SC.DRAG_LINK : SC.DRAG_NONE;
   },
 
   /**  
@@ -261,7 +262,6 @@ LinkIt.Terminal = {
   
   */
   dragDidEnd: function(drag, loc, op) {
-    //LinkIt.log('%@.dragDidEnd()'.fmt(this));
     var dragLink = drag.dragLink;
     if (dragLink) {
       dragLink.destroy();
@@ -293,21 +293,16 @@ LinkIt.Terminal = {
     this.linkDragEnded();
   },
   
-  // TODO: [JL] I don't think this is necessary...can just return SC.DRAG_LINK!
   computeDragOperations: function(drag, evt) {
-    //LinkIt.log('%@.computeDragOperations()'.fmt(this));
-    //return (this.canDropLink() && this._nodeAllowsLink(drag.source)) ? SC.DRAG_LINK : SC.DRAG_NONE;
     return SC.DRAG_LINK;
   },
   
   acceptDragOperation: function(drag, op) {
-    //LinkIt.log('%@.acceptDragOperation()'.fmt(this));
     var accept = (op === SC.DRAG_LINK) ? this._nodeAllowsLink(drag.source) : NO; 
     return accept;
   },
   
   performDragOperation: function(drag, op) {
-    //LinkIt.log('%@.performDragOperation()'.fmt(this));
     var node = this.get('node');
     var otherTerminal = drag.source;
     if (node && otherTerminal) {
@@ -328,7 +323,7 @@ LinkIt.Terminal = {
   _nodeAllowsLink: function(otherTerminal) {
     var myLinkObj, myNodeAccepted, otherLinkObj, otherNodeAccepted;
     if (otherTerminal && otherTerminal.get('isTerminal')) {
-      
+
       var myNode = this.get('node');
       var otherNode = otherTerminal.get('node');
       
