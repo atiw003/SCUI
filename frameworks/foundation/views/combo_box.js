@@ -626,7 +626,7 @@ SCUI.ComboBoxView = SC.View.extend( SC.Control, SC.Editable, {
       acceptsFirstResponder: NO,
 
       contentView: SC.View.extend({
-        layout: { left: 0, right: 0, top: 0, bottom: 0 },
+        layout: { left: 0, right: 0, top: 4, bottom: 4 },
         childViews: 'listView spinnerView'.w(),
         
         listView: csv.extend({
@@ -637,6 +637,8 @@ SCUI.ComboBoxView = SC.View.extend( SC.Control, SC.Editable, {
           contentView: SC.ListView.design({
             classNames: 'scui-combobox-list-view',
             layout: { left: 0, right: 0, top: 0, bottom: 0 },
+            rowHeight: Orion.Layout.menuItemHeight,
+            rowSpacing: Orion.Layout.listItemSpacing,
             allowsMultipleSelection: NO,
             target: this,
             action: '_selectListItem', // do this when [Enter] is pressed, for example
