@@ -21,6 +21,11 @@
 window.Scui = window.Scui || SC.Object.create();
 window.SCUI = window.SCUI || window.Scui ;
 
+// ..........................................................
+//  SCUI.Validators Namspace Definition
+//
+SCUI.Validators = SC.Object.create({});
+
 // Upload Constants
 SCUI.READY = 'READY';
 SCUI.BUSY = 'BUSY';
