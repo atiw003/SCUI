@@ -27,6 +27,8 @@ SCUI.DatePickerView = SC.View.extend(
   hint: "Click to choose...",
   dateFormat: null,
   
+  isEditing: NO,
+  
   // @private
   _textfield: null,
   _date_button: null,
@@ -35,7 +37,7 @@ SCUI.DatePickerView = SC.View.extend(
   _layout: {width: 195, height: 25},
   
   // display properties that should automatically cause a refresh.
-  displayProperties: ['date'],
+  displayProperties: ['date', 'isEditing'],
   
   init: function(){
     sc_super();
@@ -109,6 +111,8 @@ SCUI.DatePickerView = SC.View.extend(
       })
     );
     childViews.push(view);
+
+    this.bind('isEditing', SC.Binding.from('isEditing', view).oneWay());
     
     // Now, set up the button to launch the Calendar Datepicker
     view = this._date_button = this.createChildView( 
@@ -124,6 +128,10 @@ SCUI.DatePickerView = SC.View.extend(
     
     this.set('childViews', childViews);
     sc_super();
+  },
+  
+  renderMixin: function(context, firstTime) {
+    context.setClass('focus', this.get('isEditing'));
   },
   
   /**  
