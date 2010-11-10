@@ -13,6 +13,8 @@
 SCUI.Mobility = {
 /* Mobility Mixin */
   viewThatMoves: null,
+  verticalMove: YES,
+  horizontalMove: YES,
   
   mouseDown: function(evt) {
     var v, i; 
@@ -47,7 +49,7 @@ SCUI.Mobility = {
     // adjust the layout...
     var i = this._mouseDownInfo ;
     if(i){
-      var deltaX = evt.pageX - i.pageX, deltaY = evt.pageY - i.pageY;
+      var deltaX = this.get('horizontalMove') ? evt.pageX - i.pageX : 0, deltaY = this.get('verticalMove') ? evt.pageY - i.pageY : 0;
       var view = this.get('viewThatMoves') || this;
     
       this._adjustViewLayoutOnDrag(view, i.zoneX, i.zoneY, deltaX, i, 'left', 'right', 'centerX', 'width') ;
